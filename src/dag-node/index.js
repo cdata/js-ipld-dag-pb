@@ -79,6 +79,5 @@ class DAGNode {
 
 exports = module.exports = withIs(DAGNode, { className: 'DAGNode', symbolName: '@ipld/js-ipld-dag-pb/dagnode' })
 exports.create = require('./create')
-exports.clone = require('./clone')
 exports.addLink = require('./addLink')
 exports.rmLink = require('./rmLink')
