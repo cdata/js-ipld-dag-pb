@@ -1,7 +1,7 @@
 'use strict'
 
-const sort = require('stable')
-const { linkSort, toDAGLink } = require('./util')
+const sortLinks = require('./sortLinks')
+const toDAGLink = require('./toDAGLink')
 const DAGLink = require('../dag-link')
 const DAGNode = require('./index')
 const addNamedLink = require('./addNamedLink')
@@ -27,7 +27,7 @@ const addLink = async (node, link) => {
   const dagLink = await asDAGLink(link)
   node._links.push(dagLink)
   addNamedLink(node, dagLink.Name, node._links.length - 1)
-  node._links = sort(node._links, linkSort)
+  node._links = sortLinks(node._links)
 }
 
 module.exports = addLink

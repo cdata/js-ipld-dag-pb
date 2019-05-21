@@ -9,7 +9,7 @@ chai.use(dirtyChai)
 const dagPB = require('../src')
 const DAGLink = dagPB.DAGLink
 const DAGNode = dagPB.DAGNode
-const toDAGLink = require('../src/dag-node/util').toDAGLink
+const toDAGLink = require('../src/dag-node/toDAGLink')
 const isNode = require('detect-node')
 const multihash = require('multihashes')
 const multicodec = require('multicodec')
@@ -35,7 +35,7 @@ module.exports = (repo) => {
     it('create a node', () => {
       const data = Buffer.from('some data')
 
-      const node = DAGNode.create(data)
+      const node = new DAGNode(data)
       expect(node.Data.length).to.be.above(0)
       expect(Buffer.isBuffer(node.Data)).to.be.true()
       expect(node.size).to.be.above(0)
@@ -48,7 +48,7 @@ module.exports = (repo) => {
     it('create a node with string data', () => {
       const data = 'some data'
 
-      const node = DAGNode.create(data)
+      const node = new DAGNode(data)
       expect(node.Data.length).to.be.above(0)
       expect(Buffer.isBuffer(node.Data)).to.be.true()
       expect(node.size).to.be.above(0)
@@ -72,12 +72,12 @@ module.exports = (repo) => {
 
       const someData = Buffer.from('some data')
 
-      const node1 = DAGNode.create(someData, l1)
+      const node1 = new DAGNode(someData, l1)
       const l2 = l1.map((l) => {
         return new DAGLink(l.Name, l.Tsize, l.Hash)
       })
 
-      const node2 = DAGNode.create(someData, l2)
+      const node2 = new DAGNode(someData, l2)
       expect(node2.Links).to.eql([l1[1], l1[0]])
       expect(node1.toJSON()).to.eql(node2.toJSON())
 
@@ -89,14 +89,14 @@ module.exports = (repo) => {
     })
 
     it('create with empty link name', () => {
-      const node = DAGNode.create(Buffer.from('hello'), [
+      const node = new DAGNode(Buffer.from('hello'), [
         new DAGLink('', 10, 'QmXg9Pp2ytZ14xgmQjYEiHjVjMFXzCVVEcRTWJBmLgR39U')
       ])
       expect(node.Links[0].Name).to.be.eql('')
     })
 
     it('create with undefined link name', () => {
-      const node = DAGNode.create(Buffer.from('hello'), [
+      const node = new DAGNode(Buffer.from('hello'), [
         new DAGLink(undefined, 10, 'QmXg9Pp2ytZ14xgmQjYEiHjVjMFXzCVVEcRTWJBmLgR39U')
       ])
       expect(node.Links[0].Name).to.be.eql('')
@@ -108,7 +108,7 @@ module.exports = (repo) => {
     })
 
     it('create with link named like a private property', () => {
-      const node = DAGNode.create(Buffer.from('hello'), [
+      const node = new DAGNode(Buffer.from('hello'), [
         new DAGLink(
           '_links', 10, 'QmXg9Pp2ytZ14xgmQjYEiHjVjMFXzCVVEcRTWJBmLgR39U'
         )
@@ -118,7 +118,7 @@ module.exports = (repo) => {
 
     it('create an empty node', () => {
       // this node is not in the repo as we don't copy node data to the browser
-      const node = DAGNode.create(Buffer.alloc(0))
+      const node = new DAGNode(Buffer.alloc(0))
       expect(node.Data.length).to.be.equal(0)
       expect(Buffer.isBuffer(node.Data)).to.be.true()
       expect(node.size).to.be.equal(0)
@@ -129,17 +129,17 @@ module.exports = (repo) => {
     })
 
     it('fail to create a node with other data types', () => {
-      expect(() => DAGNode.create({})).to.throw(
+      expect(() => new DAGNode({})).to.throw(
         'Passed \'data\' is not a buffer or a string!'
       )
-      expect(() => DAGNode.create([])).to.throw(
+      expect(() => new DAGNode([])).to.throw(
         'Passed \'data\' is not a buffer or a string!'
       )
     })
 
     it('addLink by DAGNode', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node1 = new DAGNode(Buffer.from('1'))
+      const node2 = new DAGNode(Buffer.from('2'))
       await DAGNode.addLink(node1, node2)
       expect(node1.Links.length).to.equal(1)
       expect(node1.Links[0].Tsize).to.eql(node2.size)
@@ -147,8 +147,8 @@ module.exports = (repo) => {
     })
 
     it('addLink by DAGLink', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node1 = new DAGNode(Buffer.from('1'))
+      const node2 = new DAGNode(Buffer.from('2'))
       const link = await toDAGLink(node2)
       await DAGNode.addLink(node1, link)
       expect(node1.Links.length).to.equal(1)
@@ -157,8 +157,8 @@ module.exports = (repo) => {
     })
 
     it('addLink by object', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node1 = new DAGNode(Buffer.from('1'))
+      const node2 = new DAGNode(Buffer.from('2'))
       const link = await toDAGLink(node2)
       const linkObject = link.toJSON()
       await DAGNode.addLink(node1, linkObject)
@@ -168,8 +168,8 @@ module.exports = (repo) => {
     })
 
     it('addLink by name', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node1 = new DAGNode(Buffer.from('1'))
+      const node2 = new DAGNode(Buffer.from('2'))
       const link = await toDAGLink(node2, { name: 'banana' })
       expect(Object.keys(node1._namedLinks)).to.not.include('banana')
       await DAGNode.addLink(node1, link)
@@ -180,22 +180,22 @@ module.exports = (repo) => {
     })
 
     it('addLink - add several links', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
+      const node1 = new DAGNode(Buffer.from('1'))
       expect(node1.Links.length).to.equal(0)
 
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node2 = new DAGNode(Buffer.from('2'))
       await DAGNode.addLink(node1, node2)
       expect(node1.Links.length).to.equal(1)
 
-      const node3 = DAGNode.create(Buffer.from('3'))
+      const node3 = new DAGNode(Buffer.from('3'))
       await DAGNode.addLink(node1, node3)
       expect(node1.Links.length).to.equal(2)
     })
 
     it('addLink by DAGNode.Links', async () => {
       const linkName = 'link-name'
-      const remote = DAGNode.create(Buffer.from('2'))
-      const source = DAGNode.create(Buffer.from('1'))
+      const remote = new DAGNode(Buffer.from('2'))
+      const source = new DAGNode(Buffer.from('1'))
       await DAGNode.addLink(
         source,
         await toDAGLink(remote, {
@@ -214,11 +214,11 @@ module.exports = (repo) => {
     })
 
     it('rmLink by name', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
+      const node1 = new DAGNode(Buffer.from('1'))
       expect(node1.Links.length).to.eql(0)
       const withoutLink = node1.toJSON()
 
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node2 = new DAGNode(Buffer.from('2'))
       const link = await toDAGLink(node2, { name: 'banana' })
 
       await DAGNode.addLink(node1, link)
@@ -231,11 +231,11 @@ module.exports = (repo) => {
     })
 
     it('rmLink by hash', async () => {
-      const node1 = DAGNode.create(Buffer.from('1'))
+      const node1 = new DAGNode(Buffer.from('1'))
       expect(node1.Links.length).to.eql(0)
       const withoutLink = node1.toJSON()
 
-      const node2 = DAGNode.create(Buffer.from('2'))
+      const node2 = new DAGNode(Buffer.from('2'))
       const link = await toDAGLink(node2, { name: 'banana' })
 
       await DAGNode.addLink(node1, link)
@@ -248,7 +248,7 @@ module.exports = (repo) => {
     })
 
     it('get node CID', async () => {
-      const node = DAGNode.create(Buffer.from('some data'))
+      const node = new DAGNode(Buffer.from('some data'))
       const serialized = dagPB.util.serialize(node)
       const cid = await dagPB.util.cid(serialized)
       expect(cid.multihash).to.exist()
@@ -259,7 +259,7 @@ module.exports = (repo) => {
     })
 
     it('get node CID with version', async () => {
-      const node = DAGNode.create(Buffer.from('some data'))
+      const node = new DAGNode(Buffer.from('some data'))
       const serialized = dagPB.util.serialize(node)
       const cid = await dagPB.util.cid(serialized, { cidVersion: 0 })
       expect(cid.multihash).to.exist()
@@ -270,7 +270,7 @@ module.exports = (repo) => {
     })
 
     it('get node CID with hashAlg', async () => {
-      const node = DAGNode.create(Buffer.from('some data'))
+      const node = new DAGNode(Buffer.from('some data'))
       const serialized = dagPB.util.serialize(node)
       const cid = await dagPB.util.cid(serialized, { hashAlg: multicodec.SHA2_512 })
       expect(cid.multihash).to.exist()
@@ -281,7 +281,7 @@ module.exports = (repo) => {
     })
 
     it('marshal a node and store it with block-service', async () => {
-      const node = DAGNode.create(Buffer.from('some data'))
+      const node = new DAGNode(Buffer.from('some data'))
       const serialized = dagPB.util.serialize(node)
       const cid = await dagPB.util.cid(serialized)
       const block = new Block(Buffer.from(serialized), cid)
@@ -391,7 +391,7 @@ module.exports = (repo) => {
     })
 
     it('dagNode.toJSON with empty Node', () => {
-      const node = DAGNode.create(Buffer.alloc(0))
+      const node = new DAGNode(Buffer.alloc(0))
       expect(node.toJSON().data).to.eql(Buffer.alloc(0))
       expect(node.toJSON().links).to.eql([])
       expect(node.toJSON().size).to.exist()
@@ -399,7 +399,7 @@ module.exports = (repo) => {
 
     it('dagNode.toJSON with data no links', () => {
       const data = Buffer.from('La cucaracha')
-      const node = DAGNode.create(data)
+      const node = new DAGNode(data)
       expect(node.toJSON().data).to.eql(data)
       expect(node.toJSON().links).to.eql([])
       expect(node.toJSON().size).to.exist()
@@ -423,12 +423,12 @@ module.exports = (repo) => {
       const link2 = new DAGLink(l2.Name, l2.Tsize,
         Buffer.from(bs58.decode(l2.Hash)))
 
-      const node = DAGNode.create(Buffer.from('hiya'), [link1, link2])
+      const node = new DAGNode(Buffer.from('hiya'), [link1, link2])
       expect(node.Links).to.have.lengthOf(2)
     })
 
     it('toString', () => {
-      const node = DAGNode.create(Buffer.from('hello world'))
+      const node = new DAGNode(Buffer.from('hello world'))
       const expected = 'DAGNode <data: "aGVsbG8gd29ybGQ=", links: 0, size: 13>'
       expect(node.toString()).to.equal(expected)
     })
@@ -443,7 +443,7 @@ module.exports = (repo) => {
         }]
       }
 
-      const node = DAGNode.create(obj.Data, obj.Links)
+      const node = new DAGNode(obj.Data, obj.Links)
       expect(node.Data.length).to.be.above(0)
       expect(Buffer.isBuffer(node.Data)).to.be.true()
       expect(node.size).to.be.above(0)
@@ -456,7 +456,7 @@ module.exports = (repo) => {
     })
 
     it('creates links from objects with .Size properties', () => {
-      const node = DAGNode.create(Buffer.from('some data'), [{
+      const node = new DAGNode(Buffer.from('some data'), [{
         Hash: 'QmUxD5gZfKzm8UN4WaguAMAZjw2TzZ2ZUmcqm2qXPtais7',
         Size: 9001
       }])
