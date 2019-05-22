@@ -7,6 +7,8 @@ const visibility = require('../visibility')
 const { serializeDAGNode } = require('../serialize.js')
 const DAGLink = require('../dag-link')
 const toDAGLink = require('./toDAGLink')
+const addLink = require('./addLink')
+const rmLink = require('./rmLink')
 
 class DAGNode {
   constructor (data, links = [], serializedSize = 0) {
@@ -67,6 +69,14 @@ class DAGNode {
     return `DAGNode <data: "${this.Data.toString('base64')}", links: ${this.Links.length}, size: ${this.size}>`
   }
 
+  addLink (link) {
+    return addLink(this, link)
+  }
+
+  rmLink (link) {
+    return rmLink(this, link)
+  }
+
   async toDAGLink (options) {
     return toDAGLink(this, options)
   }
@@ -105,5 +115,3 @@ class DAGNode {
 }
 
 exports = module.exports = withIs(DAGNode, { className: 'DAGNode', symbolName: '@ipld/js-ipld-dag-pb/dagnode' })
-exports.addLink = require('./addLink')
-exports.rmLink = require('./rmLink')

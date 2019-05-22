@@ -145,7 +145,7 @@ describe('IPLD Format resolver (local)', () => {
 
       it('named link still works even if other links get removed', async () => {
         const deserialized = utils.deserialize(linksNodeBlob)
-        DAGNode.rmLink(deserialized, links[0].Hash)
+        deserialized.rmLink(links[0].Hash)
         expect(deserialized._namedLinks['named link']).to.exist()
       })
     })
