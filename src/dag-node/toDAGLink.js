@@ -1,14 +1,15 @@
 'use strict'
 
 const DAGLink = require('../dag-link')
-const { cid, serialize } = require('../util')
+const { serializeDAGNode } = require('../serialize.js')
+const genCid = require('../genCid')
 
 /*
  * toDAGLink converts a DAGNode to a DAGLink
  */
 const toDAGLink = async (node, options = {}) => {
-  const serialized = serialize(node)
-  const nodeCid = await cid(serialized)
+  const serialized = serializeDAGNode(node)
+  const nodeCid = await genCid.cid(serialized)
   return new DAGLink(options.name || '', serialized.length, nodeCid)
 }
 

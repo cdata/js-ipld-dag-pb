@@ -6,6 +6,7 @@ const sortLinks = require('./sortLinks')
 const visibility = require('../visibility')
 const { serializeDAGNode } = require('../serialize.js')
 const DAGLink = require('../dag-link')
+const toDAGLink = require('./toDAGLink')
 
 class DAGNode {
   constructor (data, links = [], serializedSize = 0) {
@@ -64,6 +65,10 @@ class DAGNode {
 
   toString () {
     return `DAGNode <data: "${this.Data.toString('base64')}", links: ${this.Links.length}, size: ${this.size}>`
+  }
+
+  async toDAGLink (options) {
+    return toDAGLink(this, options)
   }
 
   get size () {

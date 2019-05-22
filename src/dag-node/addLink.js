@@ -1,12 +1,11 @@
 'use strict'
 
 const sortLinks = require('./sortLinks')
-const toDAGLink = require('./toDAGLink')
 const DAGLink = require('../dag-link')
 const DAGNode = require('./index')
 const addNamedLink = require('./addNamedLink')
 
-const asDAGLink = async (link) => {
+const asDAGLink = (link) => {
   if (DAGLink.isDAGLink(link)) {
     // It's a DAGLink instance
     // no need to do anything
@@ -14,17 +13,15 @@ const asDAGLink = async (link) => {
   }
 
   if (DAGNode.isDAGNode(link)) {
-    // It's a DAGNode instance
-    // convert to link
-    return toDAGLink(link, {})
+    throw new Error('Link must be a DAGLink or DAGLink-like. Convert the DAGNode into a DAGLink via `node.toDAGLink()`.')
   }
 
   // It's a Object with name, multihash/hash/cid and size
   return new DAGLink(link.Name || link.name, link.Tsize || link.size, link.Hash || link.multihash || link.hash || link.cid)
 }
 
-const addLink = async (node, link) => {
-  const dagLink = await asDAGLink(link)
+const addLink = (node, link) => {
+  const dagLink = asDAGLink(link)
   node._links.push(dagLink)
   addNamedLink(node, dagLink.Name, node._links.length - 1)
   node._links = sortLinks(node._links)
